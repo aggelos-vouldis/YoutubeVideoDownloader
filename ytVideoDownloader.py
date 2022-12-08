@@ -1,4 +1,4 @@
-from tkinter import messagebox
+from tkinter import ttk
 import customtkinter as ctk
 import asyncio
 import threading
@@ -18,26 +18,24 @@ class Video:
         self.views = views
 
     def __str__(self):
-        return f'Title: {self.title}\nFile Size: {self.file_size}\nHighest Resolution: {self.highest_res}\nAuthor: {self.author}\nViews: {self.views}'
+        return f'{self.title} by {self.author}\n{self.file_size} MB, {self.highest_res}, {self.views}views'
 
     def get_yt_video(self):
         return self.yt, self.yt_video
 
 
-def center(win):
+def center(win, width, height):
     """
     centers a tkinter window
     :param win: the main window or Toplevel window to center
     """
-    width = 670
     frm_width = win.winfo_rootx() - win.winfo_x()
     win_width = width + 2 * frm_width
-    height = 340
     titlebar_height = win.winfo_rooty() - win.winfo_y()
     win_height = height + titlebar_height + frm_width
     x = win.winfo_screenwidth() // 2 - win_width // 2
     y = win.winfo_screenheight() // 2 - win_height // 2
-    win.geometry('{}x{}+{}+{}'.format(670, 340, x, y))
+    win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
     win.deiconify()
 
 
@@ -62,7 +60,7 @@ async def do_get_video_info():
         video = yt.streams.get_highest_resolution()
 
         global v1
-        v1 = Video(yt, video, url, video.title, f'{round(video.filesize * 0.000001, 2)} MB',
+        v1 = Video(yt, video, url, video.title, f'{round(video.filesize * 0.000001, 2)}',
                    video.resolution, yt.author, "{:,}\n".format(yt.views))
         info_label.configure(text=v1.__str__())
         download_button.configure(state=ctk.NORMAL)
@@ -110,27 +108,34 @@ async def do_download():
 
 def main(async_loop):
     root = ctk.CTk()
-    root.geometry("670x340")
-    center(root)
+    ctk.set_default_color_theme("green")
+    root.geometry("1020x540")
+    #center(root, 1020, 540)
+
+    tabview = ctk.CTkTabview(root, width=900, height=500)
+    tabview.add("video download")
+    tabview.add("playlist download")
+    tabview.pack(pady=12, padx=10)
 
     global url_entry
-    url_entry = ctk.CTkEntry(master=root, width=500)
+    url_entry = ctk.CTkEntry(master=tabview.tab("video download"), width=500)
     url_entry.pack(pady=12, padx=10)
 
-    retrieve_info_button = ctk.CTkButton(master=root, text='Get video Info',
+    retrieve_info_button = ctk.CTkButton(master=tabview.tab("video download"), text='Get video Info',
                                          command=lambda: do_start_tasks(async_loop, "info"))
     retrieve_info_button.pack(pady=12, padx=10, side="left")
 
     global download_button
-    download_button = ctk.CTkButton(master=root, text='Download Video',
+    download_button = ctk.CTkButton(master=tabview.tab("video download"), text='Download Video',
                                     command=lambda: do_start_tasks(async_loop, "download"),  state=ctk.DISABLED)
     download_button.pack(pady=12, padx=10, side="right")
 
-    video_frame = ctk.CTkFrame(master=root)
-    video_frame.pack(fill="both", expand=True)
+    video_frame = ctk.CTkFrame(master=tabview.tab(
+        "video download"), corner_radius=10, width=900)
+    video_frame.pack(pady=12, padx=10, expand=True, fill="both")
 
     global info_label
-    info_label = ctk.CTkLabel(master=video_frame, text='', corner_radius=5, )
+    info_label = ctk.CTkLabel(master=video_frame, text='')
     info_label.pack(pady=12, padx=10, side="left")
 
     global persentage_progress_bar
@@ -139,8 +144,18 @@ def main(async_loop):
     persentage_progress_bar.set(0)
 
     global error_label
-    error_label = ctk.CTkLabel(master=root, text='', text_color="red")
+    error_label = ctk.CTkLabel(master=tabview.tab(
+        "video download"), text='', text_color="red")
     error_label.pack(pady=12, padx=10)
+
+    style = ttk.Style()
+    style.theme_use("xpnative")
+    style.configure("Treeview",
+                    foreground="black",
+                    rowheight=15,
+                    )
+    style.map('Treeview', background=[('selected', 'blue')])
+
     root.mainloop()
 
 
