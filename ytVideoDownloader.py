@@ -2,7 +2,6 @@ from tkinter import messagebox
 import customtkinter as ctk
 import asyncio
 import threading
-import random
 from pytube import YouTube, exceptions
 
 
@@ -105,7 +104,7 @@ async def do_download():
     v1.yt.register_on_progress_callback(on_progress)
     persentage_progress_bar.set(0)
     print(f"Downloading \"{v1.title}\"..")
-    v1.yt_video.download('D:\\Videos')
+    v1.yt_video.download('downloads')
     download_button.configure(state=ctk.DISABLED)
 
 
