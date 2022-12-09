@@ -18,7 +18,7 @@ class Video:
         self.views = views
 
     def __str__(self):
-        return f'{self.title} by {self.author}\n{self.file_size} MB, {self.highest_res}, {self.views}views'
+        return f'{self.title} by {self.author}\n{self.file_size} MB, {self.highest_res}\n{self.views}views'
 
     def get_yt_video(self):
         return self.yt, self.yt_video
@@ -111,8 +111,9 @@ def main(async_loop):
     ctk.set_default_color_theme("green")
     root.geometry("1020x540")
     #center(root, 1020, 540)
+    # ctk.deactivate_automatic_dpi_awareness()
 
-    tabview = ctk.CTkTabview(root, width=900, height=500)
+    tabview = ctk.CTkTabview(root, border_width=3, width=1000, height=520)
     tabview.add("video download")
     tabview.add("playlist download")
     tabview.pack(pady=12, padx=10)
@@ -123,12 +124,12 @@ def main(async_loop):
 
     retrieve_info_button = ctk.CTkButton(master=tabview.tab("video download"), text='Get video Info',
                                          command=lambda: do_start_tasks(async_loop, "info"))
-    retrieve_info_button.pack(pady=12, padx=10, side="left")
+    retrieve_info_button.pack(pady=12, padx=10)
 
     global download_button
     download_button = ctk.CTkButton(master=tabview.tab("video download"), text='Download Video',
                                     command=lambda: do_start_tasks(async_loop, "download"),  state=ctk.DISABLED)
-    download_button.pack(pady=12, padx=10, side="right")
+    download_button.pack(pady=12, padx=10)
 
     video_frame = ctk.CTkFrame(master=tabview.tab(
         "video download"), corner_radius=10, width=900)
@@ -140,7 +141,7 @@ def main(async_loop):
 
     global persentage_progress_bar
     persentage_progress_bar = ctk.CTkProgressBar(
-        master=video_frame, mode="determinate", orientation="vertical")
+        master=video_frame, mode="determinate", orientation="horizontal")
     persentage_progress_bar.set(0)
 
     global error_label
