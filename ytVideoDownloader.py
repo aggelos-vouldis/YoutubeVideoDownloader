@@ -64,6 +64,7 @@ async def do_get_video_info():
                    video.resolution, yt.author, "{:,}\n".format(yt.views))
         info_label.configure(text=v1.__str__())
         download_button.configure(state=ctk.NORMAL)
+        print(v1.__str__())
     except exceptions.VideoPrivate:
         error_label.configure(
             text="This video is private!")
