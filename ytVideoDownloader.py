@@ -1,16 +1,20 @@
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
 import tkinter as tk
 from ttkthemes import ThemedTk
 import asyncio
 import threading
 from pytube import YouTube, exceptions, Playlist
 import os
+import json
 
-
-def changer(theme):
-    mainWindow.style.theme_use(theme)
-    mainWindow.error_label.config(text=f'Theme: {theme}')
-    pass
+with open("settings.json", 'r') as input_file:
+    data = json.load(input_file)
+if data["download_folder"] == '':
+    VIDEOS_DOWNLOADS_DIR = fr'C:/Users/{os.getlogin()}/Downloads/Youtube Downloader/videos'
+    MUSIC_DOWNLOADS_DIR = fr'C:/Users/{os.getlogin()}/Downloads/Youtube Downloader/music'
+else:
+    VIDEOS_DOWNLOADS_DIR = fr'{data["download_folder"]}/videos'
+    MUSIC_DOWNLOADS_DIR = fr'{data["download_folder"]}/music'
 
 
 class TakenURLException(Exception):
@@ -59,26 +63,22 @@ class Window:
         self.all_videos = []
         self.master = master
         self.main_iid = 0
+        # Create a Settings Menu
+        my_menu = tk.Menu(master)
+        master.config(menu=my_menu)
+        self.settings_menu = tk.Menu(my_menu, tearoff=0)
+        my_menu.add_cascade(label="Settings", menu=self.settings_menu)
+
+        # Sub Menu
+        self.settings_menu.add_command(
+            label="Change Download Folder", command=change_download_folder)
+        self.settings_menu.add_command(
+            label="Open Download Folder", command=open_download_folder)
 
         # Define Style
         self.style = ttk.Style(master)
-        self.style.theme_use("scidblue")
+        self.style.theme_use("adapta")
 
-        # ------------------------------------------------
-        # TODO: REMOVE THIS
-        all_themes = master.get_themes()
-        my_menu = tk.Menu(master)
-        master.config(menu=my_menu)
-        self.theme_menu = tk.Menu(my_menu)
-        my_menu.add_cascade(label="Themes", menu=self.theme_menu)
-
-        # Sub Menu
-        for theme in all_themes:
-            self.theme_menu.add_command(
-                label=theme, command=lambda theme=theme: changer(theme))
-
-        # TODO: REMOVE THIS
-        # ------------------------------------------------
         # Define Frame for Search Entry and Search Button
         search_frame = tk.Frame(
             master=master, borderwidth=5)
@@ -167,19 +167,17 @@ class Video:
         return self.yt, self.yt_video
 
 
-def center(win, width, height):
-    """
-    centers a tkinter window
-    :param win: the main window or Toplevel window to center
-    """
-    frm_width = win.winfo_rootx() - win.winfo_x()
-    win_width = width + 2 * frm_width
-    titlebar_height = win.winfo_rooty() - win.winfo_y()
-    win_height = height + titlebar_height + frm_width
-    x = win.winfo_screenwidth() // 2 - win_width // 2
-    y = win.winfo_screenheight() // 2 - win_height // 2
-    win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
-    win.deiconify()
+def open_download_folder():
+    os.startfile(f'F:\Downloads\Youtube Downloads')
+
+
+def change_download_folder():
+    filename = filedialog.askdirectory()
+    new_destination_folder = {"download_folder": filename}
+    with open("settings.json", 'w') as output_file:
+        json.dump(new_destination_folder, output_file)
+    messagebox.showinfo("Download Folder Changed",
+                        "The folder that your downloads are gonna be stored is successfully updated\nYou will have to restart the program, for the changed to take action")
 
 
 def _asyncio_thread(async_loop, _from_):
@@ -201,9 +199,11 @@ def do_start_tasks(async_loop, _from_):
 
 async def do_get_playlist_info():
     url = mainWindow.url_entry.get()
+    mainWindow.retrieve_info_button.configure(state=tk.DISABLED)
     playlist = Playlist(url)
     for url in playlist.video_urls:
         get_info(url)
+    mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
 
 
 def get_info(url):
@@ -219,7 +219,6 @@ def get_info(url):
         mainWindow.treeview.insert(
             parent='', index='end', iid=mainWindow.get_main_iid(), text="", values=values)
         mainWindow.set_main_iid(mainWindow.get_main_iid()+1)
-        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         mainWindow.download_button.configure(state=tk.NORMAL)
         mainWindow.download_all_button.configure(state=tk.NORMAL)
 
@@ -237,7 +236,6 @@ def get_info(url):
     except exceptions.VideoRegionBlocked:
         mainWindow.error_label.configure(
             text="This video is unavaliable in your Region!")
-        print(error)
         mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.VideoUnavailable:
@@ -272,6 +270,7 @@ async def do_get_video_info():
                 raise TakenURLException()
         mainWindow.retrieve_info_button.configure(state=tk.DISABLED)
         get_info(url)
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
     except TakenURLException:
         mainWindow.error_label.configure(
             text="This video is already on the list!")
@@ -291,7 +290,6 @@ def on_progress(stream, chunk, bytes_remaining):
     bytes_downloaded = total_size - bytes_remaining
     percentage_of_completion = bytes_downloaded / total_size * 100
 
-    print(round(percentage_of_completion))
     mainWindow.persentage_progress_bar["value"] = (
         round(percentage_of_completion))
 
@@ -302,7 +300,8 @@ def download(item):
         mainWindow.all_videos[int(item)
                               ].yt.register_on_progress_callback(on_progress)
         mainWindow.persentage_progress_bar["value"] = 0
-        mainWindow.all_videos[int(item)].yt_video.download('downloads')
+        mainWindow.all_videos[int(item)].yt_video.download(
+            VIDEOS_DOWNLOADS_DIR)
 
         # change downloaded variable to 'YES'
         values = mainWindow.treeview.get_item(item)["values"]
@@ -316,8 +315,7 @@ def download(item):
                           ].yt.register_on_progress_callback(on_progress)
     mainWindow.persentage_progress_bar["value"] = 0
 
-    destination = 'downloads/music'
-    out_file = mp3_video.download(output_path=destination)
+    out_file = mp3_video.download(output_path=MUSIC_DOWNLOADS_DIR)
     base, ext = os.path.splitext(out_file)
     new_file = base + '.mp3'
     os.rename(out_file, new_file)
@@ -351,7 +349,7 @@ async def do_download():
 def main(async_loop):
     root = ThemedTk()
     root.title("Youtube Video Downloader")
-    root.geometry("1020x540")
+    root.geometry("1020x595")
 
     global mainWindow
     mainWindow = Window(root, async_loop)

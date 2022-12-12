@@ -7,8 +7,10 @@ __pycache__/
 test*.py
 download_videos.py
 kati.json
-ytVideoDownloader.py
+ytVideoDownloader_the_first.py
 
+# exe extentions
+*.exe
 # C extensions
 *.so
 
