@@ -108,6 +108,8 @@ class Window:
         self.persentage_progress_bar = ttk.Progressbar(
             master=self.video_frame, mode="determinate", orient="horizontal")
         self.persentage_progress_bar["value"] = 0
+        self.persentage_progress_bar.pack(
+            pady=12, padx=10, fill="both", expand=True)
 
         # Define download Frame
         download_frame = tk.Frame(
@@ -338,16 +340,12 @@ async def do_download_all():
     mainWindow.download_all_button.configure(state=tk.DISABLED)
 
     for idx, video in enumerate(mainWindow.all_videos):
-        mainWindow.persentage_progress_bar.pack(
-            pady=12, padx=10, fill="both", expand=True)
         chunk_size = 1024
         download(idx)
     mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
 
 
 async def do_download():
-    mainWindow.persentage_progress_bar.pack(
-        pady=12, padx=10, fill="both", expand=True)
     chunk_size = 1024
     focused_item = mainWindow.treeview.get_focus()
     download(focused_item)
@@ -355,10 +353,13 @@ async def do_download():
 
 def main(async_loop):
     root = ThemedTk()
-    root.title("Youtube Video Downloader")
-    root.iconbitmap("icon.ico")
-    root.geometry("1020x595")
-
+    root.title("Youtube Saver")
+    root.geometry("1020x650")
+    # Define the icon
+    try:
+        root.iconphoto(False, tk.PhotoImage(file='icon.png'))
+    except:
+        pass
     global mainWindow
     mainWindow = Window(root, async_loop)
 
