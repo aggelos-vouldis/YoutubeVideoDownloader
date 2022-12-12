@@ -5,16 +5,20 @@ import asyncio
 import threading
 from pytube import YouTube, exceptions, Playlist
 import os
+from os.path import exists
 import json
 
-with open("settings.json", 'r') as input_file:
-    data = json.load(input_file)
-if data["download_folder"] == '':
-    VIDEOS_DOWNLOADS_DIR = fr'C:/Users/{os.getlogin()}/Downloads/Youtube Downloader/videos'
-    MUSIC_DOWNLOADS_DIR = fr'C:/Users/{os.getlogin()}/Downloads/Youtube Downloader/music'
-else:
-    VIDEOS_DOWNLOADS_DIR = fr'{data["download_folder"]}/videos'
-    MUSIC_DOWNLOADS_DIR = fr'{data["download_folder"]}/music'
+
+def get_download_folder():
+    with open("settings.json", 'r') as input_file:
+        data = json.load(input_file)
+    if data["download_folder"] == '':
+        VIDEOS_DOWNLOADS_DIR = fr'C:/Users/{os.getlogin()}/Downloads/Youtube Downloader/videos'
+        MUSIC_DOWNLOADS_DIR = fr'C:/Users/{os.getlogin()}/Downloads/Youtube Downloader/music'
+    else:
+        VIDEOS_DOWNLOADS_DIR = fr'{data["download_folder"]}/videos'
+        MUSIC_DOWNLOADS_DIR = fr'{data["download_folder"]}/music'
+    return VIDEOS_DOWNLOADS_DIR, MUSIC_DOWNLOADS_DIR
 
 
 class TakenURLException(Exception):
@@ -173,11 +177,13 @@ def open_download_folder():
 
 def change_download_folder():
     filename = filedialog.askdirectory()
+    if filename == '':
+        return
     new_destination_folder = {"download_folder": filename}
     with open("settings.json", 'w') as output_file:
         json.dump(new_destination_folder, output_file)
     messagebox.showinfo("Download Folder Changed",
-                        "The folder that your downloads are gonna be stored is successfully updated\nYou will have to restart the program, for the changed to take action")
+                        "Your Download folder is successfully updated!")
 
 
 def _asyncio_thread(async_loop, _from_):
@@ -295,6 +301,7 @@ def on_progress(stream, chunk, bytes_remaining):
 
 
 def download(item):
+    VIDEOS_DOWNLOADS_DIR, MUSIC_DOWNLOADS_DIR = get_download_folder()
     if mainWindow.mp3_toggle_var.get() == 0:
 
         mainWindow.all_videos[int(item)
@@ -349,6 +356,7 @@ async def do_download():
 def main(async_loop):
     root = ThemedTk()
     root.title("Youtube Video Downloader")
+    root.iconbitmap("icon.ico")
     root.geometry("1020x595")
 
     global mainWindow
@@ -358,5 +366,12 @@ def main(async_loop):
 
 
 if __name__ == '__main__':
-    async_loop = asyncio.get_event_loop()
-    main(async_loop)
+    if exists('settings.json'):
+        async_loop = asyncio.get_event_loop()
+        main(async_loop)
+    else:
+        # first time install
+        with open("settings.json", 'w') as output_file:
+            json.dump({"download_folder": ""}, output_file)
+        async_loop = asyncio.get_event_loop()
+        main(async_loop)

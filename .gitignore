@@ -8,6 +8,7 @@ test*.py
 download_videos.py
 kati.json
 ytVideoDownloader_the_first.py
+akyra
 
 # exe extentions
 *.exe
