@@ -9,16 +9,23 @@ from os.path import exists
 import json
 
 
-def get_download_folder():
+def get_download_folder(_from_):
+    # Return the downloads folder
     with open("settings.json", 'r') as input_file:
         data = json.load(input_file)
     if data["download_folder"] == '':
+        DOWNLOADS_DIR = fr'C:/Users/{os.getlogin()}/Downloads/Youtube Downloader'
         VIDEOS_DOWNLOADS_DIR = fr'C:/Users/{os.getlogin()}/Downloads/Youtube Downloader/videos'
         MUSIC_DOWNLOADS_DIR = fr'C:/Users/{os.getlogin()}/Downloads/Youtube Downloader/music'
     else:
+        DOWNLOADS_DIR = fr'{data["download_folder"]}'
         VIDEOS_DOWNLOADS_DIR = fr'{data["download_folder"]}/videos'
         MUSIC_DOWNLOADS_DIR = fr'{data["download_folder"]}/music'
-    return VIDEOS_DOWNLOADS_DIR, MUSIC_DOWNLOADS_DIR
+
+    if _from_ == "download":
+        return VIDEOS_DOWNLOADS_DIR, MUSIC_DOWNLOADS_DIR
+    else:
+        return DOWNLOADS_DIR
 
 
 class TakenURLException(Exception):
@@ -174,7 +181,7 @@ class Video:
 
 
 def open_download_folder():
-    os.startfile(f'F:\Downloads\Youtube Downloads')
+    os.startfile(f'{get_download_folder(_from_="open_folder")}')
 
 
 def change_download_folder():
@@ -303,7 +310,8 @@ def on_progress(stream, chunk, bytes_remaining):
 
 
 def download(item):
-    VIDEOS_DOWNLOADS_DIR, MUSIC_DOWNLOADS_DIR = get_download_folder()
+    VIDEOS_DOWNLOADS_DIR, MUSIC_DOWNLOADS_DIR = get_download_folder(
+        _from_="download")
     if mainWindow.mp3_toggle_var.get() == 0:
 
         mainWindow.all_videos[int(item)
