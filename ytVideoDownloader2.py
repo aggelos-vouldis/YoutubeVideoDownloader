@@ -4,6 +4,7 @@ from ttkthemes import ThemedTk
 import asyncio
 import threading
 from pytube import YouTube, exceptions, Playlist
+import os
 
 
 def changer(theme):
@@ -15,6 +16,42 @@ def changer(theme):
 class TakenURLException(Exception):
     "Raise when a URL is already taken"
     pass
+
+
+class Treeview:
+    def __init__(self, master, widths, columns):
+        if (len(widths) != len(columns)):
+            print("different")
+        self.treeview = ttk.Treeview(master, selectmode="extended")
+        self.treeview['columns'] = columns
+        self.treeview['show'] = 'headings'
+
+        # Format Columns
+        self.treeview.column("#0", width=1)
+        for idx, column in enumerate(columns):
+            self.treeview.column(column, anchor=tk.CENTER, width=widths[idx])
+
+        # Create Headings
+        self.treeview.heading("#0", text="", anchor=tk.CENTER)
+
+        for idx, column in enumerate(columns):
+            self.treeview.heading(column, text=column, anchor=tk.CENTER)
+
+        self.treeview.pack(pady=12, padx=10, expand=tk.YES, fill="both")
+
+    def insert(self, parent, index, iid, text, values):
+        self.treeview.insert(parent=parent, index=index,
+                             iid=iid, text=text, values=values)
+        return
+
+    def get_focus(self):
+        return self.treeview.focus()
+
+    def get_item(self, focused):
+        return self.treeview.item(focused)
+
+    def set_item(self, focused, values):
+        self.treeview.item(focused, values=values)
 
 
 class Window:
@@ -40,62 +77,59 @@ class Window:
             self.theme_menu.add_command(
                 label=theme, command=lambda theme=theme: changer(theme))
 
+        # TODO: REMOVE THIS
         # ------------------------------------------------
+        # Define Frame for Search Entry and Search Button
+        search_frame = tk.Frame(
+            master=master, borderwidth=5)
+        search_frame.pack(pady=12, padx=10, expand=True, fill="both")
 
-        # Define and place URL Entry
-        self.url_entry = tk.Entry(master=master, width=500)
-        self.url_entry.pack(pady=12, padx=10)
+        # Define and place URL Entry and search button
+        self.url_entry = tk.Entry(master=search_frame)
+        self.url_entry.pack(pady=12, padx=10, side=tk.LEFT,
+                            fill="both", expand=True)
 
-        # Define and place Buttons for info and download
-        self.retrieve_info_button = tk.Button(master=master, text='Get video Info',
+        self.retrieve_info_button = tk.Button(master=search_frame, text='Get video Info',
                                               command=lambda: do_start_tasks(async_loop, "info"))
-        self.retrieve_info_button.pack(
-            pady=12, padx=10, side="top", anchor="w")
-
-        self.download_button = tk.Button(master=master, text='Download Video',
-                                         command=lambda: do_start_tasks(async_loop, "download"),  state=tk.DISABLED)
-        self.download_button.pack(pady=12, padx=10, side="top", anchor="e")
+        self.retrieve_info_button.pack(pady=12, padx=10, side=tk.RIGHT)
 
         # Define the video information Frame
-        self.video_frame = tk.Frame(master=master, width=900)
+        self.video_frame = tk.Frame(master=master)
         self.video_frame.pack(pady=12, padx=10, expand=True, fill="both")
 
-        # Define video information Label and download Progress Bar
-        self.treeview = ttk.Treeview(
-            self.video_frame, selectmode="extended")
-        self.treeview['columns'] = (
-            "Title", "Author", "File_Size", "Resolution", "Views")
-        self.treeview['show'] = 'headings'
-        # Format Columns
-        self.treeview.column("#0", width=1)
-        self.treeview.column("Title", anchor=tk.CENTER, width=200)
-        self.treeview.column("Author", anchor=tk.CENTER, width=100)
-        self.treeview.column("File_Size", anchor=tk.CENTER, width=5)
-        self.treeview.column("Resolution", anchor=tk.CENTER, width=5)
-        self.treeview.column("Views", anchor=tk.CENTER, width=5)
-
-        # Create Headings
-        self.treeview.heading("#0", text="", anchor=tk.CENTER)
-        self.treeview.heading("Title", text="Title", anchor=tk.CENTER)
-        self.treeview.heading("Author", text="Author", anchor=tk.CENTER)
-        self.treeview.heading("File_Size", text="Size", anchor=tk.CENTER)
-        self.treeview.heading(
-            "Resolution", text="Resolution", anchor=tk.CENTER)
-        self.treeview.heading("Views", text="Views", anchor=tk.CENTER)
-
-        self.treeview.pack(pady=12, padx=10, expand=tk.YES, fill="both")
+        # Define video information Treeview and download Progress Bar
+        self.treeview = Treeview(
+            self.video_frame, [200, 100, 5, 5, 5, 5], ("Title", "Author", "File_Size", "Resolution", "Views", "Downloaded?"))
 
         self.persentage_progress_bar = ttk.Progressbar(
             master=self.video_frame, mode="determinate", orient="horizontal")
         self.persentage_progress_bar["value"] = 0
 
-        self.download_all_button = tk.Button(
-            master=master, text="download all videos!", state=tk.DISABLED, command=do_start_tasks(async_loop, "download_all"))
-        self.download_all_button.pack(pady=12, padx=10)
+        # Define download Frame
+        download_frame = tk.Frame(
+            master=master, borderwidth=5)
+        download_frame.pack(pady=12, padx=10, expand=True, fill="both")
+        # Define and place download Button
+        self.download_button = tk.Button(master=download_frame, text='Download Video',
+                                         command=lambda: do_start_tasks(async_loop, "download"),  state=tk.DISABLED)
+        self.download_button.pack(pady=12, padx=10, side=tk.LEFT)
 
+        # Define and Place mp3 toggle Checkbox
+        self.mp3_toggle_var = tk.IntVar()
+        mp3_toggle = tk.Checkbutton(
+            master=download_frame, text="Download only MP3", variable=self.mp3_toggle_var, onvalue=1, offvalue=0)
+        mp3_toggle.pack(pady=12, padx=10, side=tk.RIGHT)
+
+        # Define and place download all Button
+        self.download_all_button = tk.Button(
+            master=master, text="download all videos!", state=tk.DISABLED, command=lambda: do_start_tasks(async_loop, "download_all"))
+        self.download_all_button.pack(
+            pady=12, padx=10)
+
+        # Define and Place the error label
         self.error_label = tk.Label(master=master,
                                     text='', fg="red")
-        self.error_label.pack(pady=12, padx=10)
+        self.error_label.pack(pady=12, padx=10, side=tk.BOTTOM)
 
     def get_attr(self):
         return self
@@ -175,39 +209,57 @@ async def do_get_playlist_info():
 def get_info(url):
     try:
         yt = YouTube(url)
-        # mainWindow.info_label.configure(text="...")
         video = yt.streams.get_highest_resolution()
 
         mainWindow.all_videos.append(Video(yt, video, url, video.title, f'{round(video.filesize * 0.000001, 2)}',
                                            video.resolution, yt.author, "{:,}\n".format(yt.views), mainWindow.get_main_iid()))
+        values = []
+        values = mainWindow.all_videos[-1].get_video_info() + ("NO",)
+        values = tuple(values)
         mainWindow.treeview.insert(
-            parent='', index='end', iid=mainWindow.get_main_iid(), text="", values=mainWindow.all_videos[-1].get_video_info())
+            parent='', index='end', iid=mainWindow.get_main_iid(), text="", values=values)
         mainWindow.set_main_iid(mainWindow.get_main_iid()+1)
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         mainWindow.download_button.configure(state=tk.NORMAL)
+        mainWindow.download_all_button.configure(state=tk.NORMAL)
+
+    # Handle ALL the exceptions
     except TakenURLException:
         mainWindow.error_label.configure(
             text="This video is already on the list!")
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.VideoPrivate:
         mainWindow.error_label.configure(
             text="This video is private!")
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
+        return
+    except exceptions.VideoRegionBlocked:
+        mainWindow.error_label.configure(
+            text="This video is unavaliable in your Region!")
+        print(error)
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.VideoUnavailable:
         mainWindow.error_label.configure(
             text="This video is unavaliable!")
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.RegexMatchError:
         mainWindow.error_label.configure(
             text="Please insert a valid Youtube URL!")
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.PytubeError:
         mainWindow.error_label.configure(
             text="There seems to be a problem, please try again later!")
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except Exception as error:
         mainWindow.error_label.configure(
-            text="There seems to be a problem, please try again later!2")
+            text="Fatal Error. Please try again later!")
         print(error)
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
 
 
@@ -223,10 +275,12 @@ async def do_get_video_info():
     except TakenURLException:
         mainWindow.error_label.configure(
             text="This video is already on the list!")
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except Exception as error:
         mainWindow.error_label.configure(
-            text="There seems to be a problem, please try again later!2")
+            text="There seems to be a problem, please try again later!")
+        mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         print(error)
         return
 
@@ -242,27 +296,56 @@ def on_progress(stream, chunk, bytes_remaining):
         round(percentage_of_completion))
 
 
-async def do_download_all():
-    for video in mainWindow.all_videos:
-        mainWindow.download_button.configure(state=tk.DISABLED)
-        mainWindow.retrieve_info_button.configure(state=tk.DISABLED)
-        mainWindow.download_all_button.configure(state=tk.DISABLED)
+def download(item):
+    if mainWindow.mp3_toggle_var.get() == 0:
 
-        mainWindow.persentage_progress_bar.pack(pady=12, padx=10)
-        chunk_size = 1024
-        video.yt.register_on_progress_callback(on_progress)
+        mainWindow.all_videos[int(item)
+                              ].yt.register_on_progress_callback(on_progress)
         mainWindow.persentage_progress_bar["value"] = 0
-        video.yt_video.download('downloads')
+        mainWindow.all_videos[int(item)].yt_video.download('downloads')
+
+        # change downloaded variable to 'YES'
+        values = mainWindow.treeview.get_item(item)["values"]
+        values[5] = 'YES'
+        mainWindow.treeview.set_item(item, values)
+        return
+
+    mp3_video = mainWindow.all_videos[int(
+        item)].yt.streams.filter(only_audio=True).first()
+    mainWindow.all_videos[int(item)
+                          ].yt.register_on_progress_callback(on_progress)
+    mainWindow.persentage_progress_bar["value"] = 0
+
+    destination = 'downloads/music'
+    out_file = mp3_video.download(output_path=destination)
+    base, ext = os.path.splitext(out_file)
+    new_file = base + '.mp3'
+    os.rename(out_file, new_file)
+    # change downloaded variable to 'YES'
+    values = mainWindow.treeview.get_item(item)["values"]
+    values[5] = 'YES'
+    mainWindow.treeview.set_item(item, values)
+
+
+async def do_download_all():
+    mainWindow.download_button.configure(state=tk.DISABLED)
+    mainWindow.retrieve_info_button.configure(state=tk.DISABLED)
+    mainWindow.download_all_button.configure(state=tk.DISABLED)
+
+    for idx, video in enumerate(mainWindow.all_videos):
+        mainWindow.persentage_progress_bar.pack(
+            pady=12, padx=10, fill="both", expand=True)
+        chunk_size = 1024
+        download(idx)
+    mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
 
 
 async def do_download():
-    mainWindow.persentage_progress_bar.pack(pady=12, padx=10)
+    mainWindow.persentage_progress_bar.pack(
+        pady=12, padx=10, fill="both", expand=True)
     chunk_size = 1024
-    focused_item = mainWindow.treeview.focus()
-    mainWindow.all_videos[int(focused_item)
-                          ].yt.register_on_progress_callback(on_progress)
-    mainWindow.persentage_progress_bar["value"] = 0
-    mainWindow.all_videos[int(focused_item)].yt_video.download('downloads')
+    focused_item = mainWindow.treeview.get_focus()
+    download(focused_item)
 
 
 def main(async_loop):
