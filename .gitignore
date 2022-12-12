@@ -5,6 +5,9 @@ __pycache__/
 
 # ignore testing scripts
 test*.py
+download_videos.py
+kati.json
+ytVideoDownloader.py
 
 # C extensions
 *.so
