@@ -1,12 +1,10 @@
-from tkinter import ttk, filedialog, messagebox
 import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
 from ttkthemes import ThemedTk
-import asyncio
-import threading
+import asyncio, threading
 from pytube import YouTube, exceptions, Playlist
-import os
+import os, json
 from os.path import exists
-import json
 
 
 def get_download_folder(_from_):
@@ -239,28 +237,23 @@ def get_info(url):
 
     # Handle ALL the exceptions
     except TakenURLException:
-        mainWindow.error_label.configure(
-            text="This video is already on the list!")
+        mainWindow.error_label.configure(text="This video is already on the list!")
         mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.VideoPrivate:
-        mainWindow.error_label.configure(
-            text="This video is private!")
+        mainWindow.error_label.configure(text="This video is private!")
         mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.VideoRegionBlocked:
-        mainWindow.error_label.configure(
-            text="This video is unavaliable in your Region!")
+        mainWindow.error_label.configure(text="This video is unavaliable in your Region!")
         mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.VideoUnavailable:
-        mainWindow.error_label.configure(
-            text="This video is unavaliable!")
+        mainWindow.error_label.configure(text="This video is unavaliable!")
         mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.RegexMatchError:
-        mainWindow.error_label.configure(
-            text="Please insert a valid Youtube URL!")
+        mainWindow.error_label.configure(text="Please insert a valid Youtube URL!")
         mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.PytubeError:
@@ -305,20 +298,15 @@ def on_progress(stream, chunk, bytes_remaining):
     bytes_downloaded = total_size - bytes_remaining
     percentage_of_completion = bytes_downloaded / total_size * 100
 
-    mainWindow.persentage_progress_bar["value"] = (
-        round(percentage_of_completion))
+    mainWindow.persentage_progress_bar["value"] = (round(percentage_of_completion))
 
 
 def download(item):
-    VIDEOS_DOWNLOADS_DIR, MUSIC_DOWNLOADS_DIR = get_download_folder(
-        _from_="download")
+    VIDEOS_DOWNLOADS_DIR, MUSIC_DOWNLOADS_DIR = get_download_folder(_from_="download")
     if mainWindow.mp3_toggle_var.get() == 0:
-
-        mainWindow.all_videos[int(item)
-                              ].yt.register_on_progress_callback(on_progress)
+        mainWindow.all_videos[int(item)].yt.register_on_progress_callback(on_progress)
         mainWindow.persentage_progress_bar["value"] = 0
-        mainWindow.all_videos[int(item)].yt_video.download(
-            VIDEOS_DOWNLOADS_DIR)
+        mainWindow.all_videos[int(item)].yt_video.download(VIDEOS_DOWNLOADS_DIR)
 
         # change downloaded variable to 'YES'
         values = mainWindow.treeview.get_item(item)["values"]
@@ -326,10 +314,8 @@ def download(item):
         mainWindow.treeview.set_item(item, values)
         return
 
-    mp3_video = mainWindow.all_videos[int(
-        item)].yt.streams.filter(only_audio=True).first()
-    mainWindow.all_videos[int(item)
-                          ].yt.register_on_progress_callback(on_progress)
+    mp3_video = mainWindow.all_videos[int(item)].yt.streams.filter(only_audio=True).first()
+    mainWindow.all_videos[int(item)].yt.register_on_progress_callback(on_progress)
     mainWindow.persentage_progress_bar["value"] = 0
 
     out_file = mp3_video.download(output_path=MUSIC_DOWNLOADS_DIR)
