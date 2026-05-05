@@ -54,7 +54,7 @@ class Treeview:
 
     def insert(self, parent, index, iid, text, values):
         self.treeview.insert(parent=parent, index=index,
-                             iid=iid, text=text, values=values)
+                                iid=iid, text=text, values=values)
         return
 
     def get_focus(self):
@@ -99,7 +99,7 @@ class Window:
                             fill="both", expand=True)
 
         self.retrieve_info_button = tk.Button(master=search_frame, text='Get video Info',
-                                              command=lambda: do_start_tasks(async_loop, "info"))
+                                                command=lambda: do_start_tasks(async_loop, "info"))
         self.retrieve_info_button.pack(pady=12, padx=10, side=tk.RIGHT)
 
         # Define the video information Frame
@@ -110,10 +110,10 @@ class Window:
         self.treeview = Treeview(
             self.video_frame, [200, 100, 5, 5, 5, 5], ("Title", "Author", "File_Size", "Resolution", "Views", "Downloaded?"))
 
-        self.persentage_progress_bar = ttk.Progressbar(
+        self.percentage_progress_bar = ttk.Progressbar(
             master=self.video_frame, mode="determinate", orient="horizontal")
-        self.persentage_progress_bar["value"] = 0
-        self.persentage_progress_bar.pack(
+        self.percentage_progress_bar["value"] = 0
+        self.percentage_progress_bar.pack(
             pady=12, padx=10, fill="both", expand=True)
 
         # Define download Frame
@@ -122,7 +122,7 @@ class Window:
         download_frame.pack(pady=12, padx=10, expand=True, fill="both")
         # Define and place download Button
         self.download_button = tk.Button(master=download_frame, text='Download Video',
-                                         command=lambda: do_start_tasks(async_loop, "download"),  state=tk.DISABLED)
+                                            command=lambda: do_start_tasks(async_loop, "download"),  state=tk.DISABLED)
         self.download_button.pack(pady=12, padx=10, side=tk.LEFT)
 
         # Define and Place mp3 toggle Checkbox
@@ -245,11 +245,11 @@ def get_info(url):
         mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.VideoRegionBlocked:
-        mainWindow.error_label.configure(text="This video is unavaliable in your Region!")
+        mainWindow.error_label.configure(text="This video is unavailable in your Region!")
         mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.VideoUnavailable:
-        mainWindow.error_label.configure(text="This video is unavaliable!")
+        mainWindow.error_label.configure(text="This video is unavailable!")
         mainWindow.retrieve_info_button.configure(state=tk.NORMAL)
         return
     except exceptions.RegexMatchError:
@@ -293,19 +293,19 @@ async def do_get_video_info():
 
 
 def on_progress(stream, chunk, bytes_remaining):
-    # Function for persentage_progress_bar changes
+    # Function for percentage_progress_bar changes
     total_size = stream.filesize
     bytes_downloaded = total_size - bytes_remaining
     percentage_of_completion = bytes_downloaded / total_size * 100
 
-    mainWindow.persentage_progress_bar["value"] = (round(percentage_of_completion))
+    mainWindow.percentage_progress_bar["value"] = (round(percentage_of_completion))
 
 
 def download(item):
     VIDEOS_DOWNLOADS_DIR, MUSIC_DOWNLOADS_DIR = get_download_folder(_from_="download")
     if mainWindow.mp3_toggle_var.get() == 0:
         mainWindow.all_videos[int(item)].yt.register_on_progress_callback(on_progress)
-        mainWindow.persentage_progress_bar["value"] = 0
+        mainWindow.percentage_progress_bar["value"] = 0
         mainWindow.all_videos[int(item)].yt_video.download(VIDEOS_DOWNLOADS_DIR)
 
         # change downloaded variable to 'YES'
@@ -316,7 +316,7 @@ def download(item):
 
     mp3_video = mainWindow.all_videos[int(item)].yt.streams.filter(only_audio=True).first()
     mainWindow.all_videos[int(item)].yt.register_on_progress_callback(on_progress)
-    mainWindow.persentage_progress_bar["value"] = 0
+    mainWindow.percentage_progress_bar["value"] = 0
 
     out_file = mp3_video.download(output_path=MUSIC_DOWNLOADS_DIR)
     base, ext = os.path.splitext(out_file)

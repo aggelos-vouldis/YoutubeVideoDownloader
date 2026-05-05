@@ -75,7 +75,7 @@ class Video:
 
     def __str__(self) -> str:
         return f'VIDEO:\nTitle: {self.title}, Author: {self.author}, Views: {self.views}\nVideo Resolutions: ' \
-               f'{self.video_resolutions}\nAudio Resolutions: {self.audio_resolutions}'
+                f'{self.video_resolutions}\nAudio Resolutions: {self.audio_resolutions}'
 
 
 class _Playlist:

@@ -1,35 +1,96 @@
-# Youtube Saver
+# YouTube Video Saver - Desktop Application
 
-A Simple Youtube Downloader _for the public_
+![Youtube Video Saver](README_FILES/program_1.png "Main Screen")
 
-## Usage
+YouTube Video Saver is a desktop application that allows you to download YouTube videos and entire playlists as MP4 or MP3 files. Built with Python, it provides a simple GUI interface with progress tracking, error handling, and customizable download settings.
 
-Just execute the .exe file
-![Opening Youtube Saver](README_FILES/program_1.png "Opening Youtube Saver")
+## Features
 
-Paste the URL from the Youtube Video you want to download and press the "Get video Info" Button
-![Paste URL](README_FILES/program_2.png "Paste URL")
+- Single Video Download
+  - Download any YouTube video (as MP4 or MP3)
+  - Shows video details (title, resolution, file size, views)
+  - Progress bar during download
+- Playlist Support
+  - Download entire playlists with a single click
+  - Automatic detection of playlist URLs
+- Smart Error Handling
+  - Graceful error messages for private videos, region blocks, and unavailable content
+  - Prevents duplicate downloads
+- Customizable Download
+  - Set default download folder via settings
+  - MP3 toggle for audio-only downloads
+  - Download history tracking
+- User-Friendly Interface
+  - Clean, modern design with status indicators
+  - Error messages in red for visibility
+  - Multi-threaded downloads for better performance
 
-Wait for the video to Load, then pick it from the list and press the "Download Video" Button
+## Installation
 
-**_the bar on the bottom will start to fill up_**
+1. Prerequisites:
+   - Python 3.7+ (including pip)
+   - Tkinter (usually included with Python)
+   - `pytube` library
+   - `requests` library
+2. Install Dependencies:
+   - `pip install pytube requests`
+3. Run the Application:
+   - `python yt_saver.py`
 
-**_when it reaches the end the video has been downloaded and the "Downloaded?" Column will be updated_**
+## Usage Guide
 
-![Download Video](README_FILES/program_3.png "Download Video")
+1. Setting Download Folder
+   - First run will prompt you to set your default download folder
+   - Can be changed later via menu: `File > Change Download Folder`
+2. Downloading a Single Video
+   1. Enter a valid YouTube URL in the input field
+   2. Click Download Video button
+   3. Toggle "Download only MP3" if needed
+   4. Progress bar shows download status
+   5. Completed downloads are marked "YES" in the status column
+3. Downloading a Playlist
+   1. Paste a YouTube playlist URL
+   2. Click Download All Videos!
+   3. All videos in the playlist will download sequentially
+4. Managing Downloads
+   - View Errors: Red error messages appear if issues occur
+   - Download History: Previously downloaded videos are shown in the list
+   - MP3 Conversion: When toggled, videos download as MP3 audio only
 
-## Extra Steps
+## Configuration
 
-You can download the audio only from a video by checking the "Download only MP3" checkbox
+The application stores settings in `settings.json`:
 
-![Download Music](README_FILES/program_4.png "Download Music")
+```json
+{
+  "download_folder": "/path/to/downloads"
+}
+```
 
-You can Load a full playlist by just pasting the playlist link and pressing the "Get video Info" Button
+You can manually edit this file to change your download location at any time.
 
-![Load Playlist](README_FILES/program_5.png "Load Playlist")
+## Requirements
 
-You can also download every Loaded video by clicking the "Download all videos!" Button
+- Python 3.7+
+- Tkinter
+- pytube library
+- requests library
+- Windows with desktop environment
 
-## Be carefull
+## Contributing
 
-This Program is for Windows ONLY
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (git checkout -b feature/awesome-feature)
+3. Commit your changes (git commit -m 'Add some feature')
+4. Push to the branch (git push origin feature/awesome-feature)
+5. Open a pull request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE file](LISENSE.txt) file for details.
+
+---
+
+_Note: This application only downloads videos from YouTube that are publicly available. Downloading copyrighted content without permission may violate YouTube's Terms of Service and local laws. Always respect copyright and YouTube's terms._
